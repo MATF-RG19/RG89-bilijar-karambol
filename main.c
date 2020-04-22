@@ -5,14 +5,23 @@
 #include <stdlib.h>
 #include <stdbool.h> 
 #include "sto.h"
+#include "loptice.h"
+#include "cunjevi.h"
 
 
 static void on_display();
 static void on_reshape(int width, int height);
 static void on_keyboard(unsigned char key, int x, int y);
+static void on_special(int key, int x, int y);
 
+void drawLine();
 
 int camera_parameter = 0;
+int parameter = 0;
+int flag = 0;
+float move_x = 0;
+float cilj_x, kraj_x;
+
 
 
 int main(int argc, char **argv){
@@ -27,6 +36,7 @@ int main(int argc, char **argv){
     glutDisplayFunc(on_display);
     glutReshapeFunc(on_reshape);
     glutKeyboardFunc(on_keyboard);
+    glutSpecialFunc(on_special);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
@@ -83,11 +93,56 @@ void on_keyboard(unsigned char key, int x, int y) {
            camera_parameter =(camera_parameter+1)%4;
         glutPostRedisplay();
         break;
-
+	case 'p':
+        case 'P':
+	   move_x = 0;
+	   cilj_x = pos1[0];
+           flag = 1;
+	   glutPostRedisplay();
+           break;
+        case 'd':
+        case 'D':
+	   move_x = 0; 
+	   cilj_x = pos2[0];
+           flag = 2;
+	   glutPostRedisplay();
+           break;
+	case 'k':
+        case 'K':
+           kraj_x = cilj_x+move_x;
+	   break;
         case 27:
           exit(0);
           break;
     }
+}
+
+void on_special(int key, int x, int y) {
+    switch(key) {
+     
+	case GLUT_KEY_RIGHT:
+             move_x += 0.01;
+	     glutPostRedisplay();
+             break;
+	case GLUT_KEY_LEFT:
+             move_x -= 0.01;
+	     glutPostRedisplay();
+             break;
+    }
+}
+
+void drawLine() {
+
+        glLineStipple(3, 0xAAAA);
+	glEnable(GL_LINE_STIPPLE);
+	glBegin(GL_LINES);
+		glVertex3f(pos3[0], pos3[1], pos3[2]);
+                if(flag == 1)
+		  glVertex3f(pos1[0]+move_x, pos1[1], pos1[2]);
+                else if(flag == 2)
+                  glVertex3f(pos2[0]+move_x, pos2[1], pos2[2]);
+	glEnd();
+        glDisable(GL_LINE_STIPPLE);
 }
 
 
@@ -127,9 +182,15 @@ void on_display() {
 
     draw_axes(5);
 
+    if(parameter == 0)
+       inicijalizacija();
+
     draw_legs();
     draw_edges();
     draw_base();
+    cunjevi();
+    draw_balls();
+    drawLine();
     
     glutSwapBuffers();
 }
