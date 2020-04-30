@@ -8,20 +8,28 @@
 #include "loptice.h"
 #include "cunjevi.h"
 
+#define TIMER_INTERVAL 40
+#define TIMER_ID 0
+
 
 static void on_display();
 static void on_reshape(int width, int height);
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_special(int key, int x, int y);
+void on_timer(int id);
 
 void drawLine();
+void napraviPutanju(float x1, float y1, float x2, float y2);
+float nadjiK(float x1, float y1, float x2, float y2);
 
 int camera_parameter = 0;
 int parameter = 0;
 int flag = 0;
 float move_x = 0;
-float cilj_x, kraj_x;
-
+float cilj_x, kraj_x, cilj_z;
+float putanja[20][2];
+int animation_ongoing = 0;
+int animation_parameter = 0;
 
 
 int main(int argc, char **argv){
@@ -97,6 +105,7 @@ void on_keyboard(unsigned char key, int x, int y) {
         case 'P':
 	   move_x = 0;
 	   cilj_x = pos1[0];
+	   cilj_z = pos1[2];
            flag = 1;
 	   glutPostRedisplay();
            break;
@@ -104,13 +113,22 @@ void on_keyboard(unsigned char key, int x, int y) {
         case 'D':
 	   move_x = 0; 
 	   cilj_x = pos2[0];
+	   cilj_z = pos2[2];
            flag = 2;
 	   glutPostRedisplay();
            break;
 	case 'k':
         case 'K':
            kraj_x = cilj_x+move_x;
+	   napraviPutanju(pos3[0], pos3[2], kraj_x, cilj_z);
 	   break;
+	case 's':
+        case 'S':
+           if (!animation_ongoing) {
+                animation_ongoing = 1;
+                glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
+            }
+            break;
         case 27:
           exit(0);
           break;
@@ -129,6 +147,85 @@ void on_special(int key, int x, int y) {
 	     glutPostRedisplay();
              break;
     }
+}
+
+void on_timer(int id) {
+    if (id == TIMER_ID) {
+         
+        if (animation_parameter >= 20) {
+            animation_ongoing = 0;
+	    animation_parameter = 0;
+            return;
+        }
+        pos3[0] = putanja[animation_parameter][0];
+        pos3[2] = putanja[animation_parameter][1];
+        animation_parameter += 1;
+
+        
+    }
+    glutPostRedisplay();
+
+    
+    if (animation_ongoing) {
+        glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
+    }
+   
+}
+
+float distance(float x1, float y1, float x2, float y2) {
+
+     float result0 = (x2 - x1)*(x2 - x1);
+     float result1 = (y2 - y1)*(y2 - y1);
+
+     float result = sqrt(result0 + result1);
+
+     return result;
+}
+
+float nadjiK(float x1, float y1, float x2, float y2) {
+
+    float k = (y2-y1)/(x2-x1);
+    return k;
+}
+
+float nadjiY(float x,float x1,float y1,float k) {
+
+    float y;
+    y = k*x - k*x1 + y1;
+    return y;
+}
+
+void napraviPutanju(float x1, float y1, float x2, float y2) {
+
+    float k = nadjiK(x1,y1,x2,y2);
+    int i=20;
+    int j=1;
+    float d = fabs(x1-x2);
+    float pomeraj = d/i;
+
+    if(distance(x1+0.1,y1,x2,y2) < distance(x1-0.1,y1,x2,y2)) {
+
+	while(i>0) {
+            float x = x1+j*pomeraj;
+            float y = nadjiY(x,x1,y1,k);
+	    printf("%f %f %d\n", x, y, i);
+            putanja[20-i][0] = x;
+            putanja[20-i][1] = y;
+            i--;
+            j++;
+        } 
+    }else {
+
+        while(i>0) {
+            float x = x1-j*pomeraj;
+            float y = nadjiY(x,x1,y1,k);
+            putanja[20-i][0] = x;
+            putanja[20-i][1] = y;
+            i--;
+	    j++;
+        }       
+    }
+   
 }
 
 void drawLine() {
@@ -184,6 +281,7 @@ void on_display() {
 
     if(parameter == 0)
        inicijalizacija();
+    parameter++;
 
     draw_legs();
     draw_edges();
