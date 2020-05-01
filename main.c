@@ -8,7 +8,6 @@
 #include "loptice.h"
 #include "cunjevi.h"
 
-#define TIMER_INTERVAL 40
 #define TIMER_ID 0
 
 
@@ -23,6 +22,7 @@ void napraviPutanju(float x1, float y1, float x2, float y2);
 float nadjiK(float x1, float y1, float x2, float y2);
 
 int camera_parameter = 0;
+int timer_interval = 40;
 int parameter = 0;
 int flag = 0;
 float move_x = 0;
@@ -126,7 +126,7 @@ void on_keyboard(unsigned char key, int x, int y) {
         case 'S':
            if (!animation_ongoing) {
                 animation_ongoing = 1;
-                glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
+                glutTimerFunc(timer_interval, on_timer, TIMER_ID);
             }
             break;
         case 27:
@@ -160,14 +160,14 @@ void on_timer(int id) {
         pos3[0] = putanja[animation_parameter][0];
         pos3[2] = putanja[animation_parameter][1];
         animation_parameter += 1;
-
+        timer_interval++;
         
     }
     glutPostRedisplay();
 
     
     if (animation_ongoing) {
-        glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
+        glutTimerFunc(timer_interval, on_timer, TIMER_ID);
     }
    
 }
@@ -208,7 +208,6 @@ void napraviPutanju(float x1, float y1, float x2, float y2) {
 	while(i>0) {
             float x = x1+j*pomeraj;
             float y = nadjiY(x,x1,y1,k);
-	    printf("%f %f %d\n", x, y, i);
             putanja[20-i][0] = x;
             putanja[20-i][1] = y;
             i--;
