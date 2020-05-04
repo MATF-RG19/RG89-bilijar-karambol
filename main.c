@@ -163,6 +163,16 @@ void on_timer(int id) {
         timer_interval++;
         
     }
+
+    if(flag == 1 && isBallHit(pos1,pos3)) 
+       animation_parameter = 20;
+    
+    if(flag == 2 && isBallHit(pos2,pos3)) 
+       animation_parameter = 20;
+
+    if(isBallHit(pos2,pos3))
+       animation_parameter = 20;
+
     glutPostRedisplay();
 
     

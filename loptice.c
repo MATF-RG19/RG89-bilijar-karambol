@@ -57,3 +57,25 @@ void draw_balls() {
 
 }
 
+float razdaljinaF(float niz1[3], float niz2[3]) {
+
+     float result0 = (niz2[0] - niz1[0])*(niz2[0] - niz1[0]);
+     float result1 = (niz2[1] - niz1[1])*(niz2[1] - niz1[1]);
+     float result2 = (niz2[2] - niz1[2])*(niz2[2] - niz1[2]);
+
+     float result = sqrt(result0 + result1 + result2);
+
+     return result;
+}
+
+bool isBallHit(float niz1[3], float niz2[3]){
+	float razdaljina = razdaljinaF(niz1, niz2);
+	
+	float suma = 2*radius;	
+
+	if (razdaljina < suma) 
+		return true;
+	else 
+		return false;				
+}
+
