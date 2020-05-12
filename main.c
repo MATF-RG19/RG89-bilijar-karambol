@@ -29,7 +29,10 @@ float move_x = 0;
 float cilj_x, kraj_x, cilj_z;
 float putanja[20][2];
 int animation_ongoing = 0;
-int animation_parameter = 0;
+int animation_parameter1 = 0;
+int animation_parameter2 = 0;
+int animation_parameter3 = 0;
+bool linija = false;
 
 
 int main(int argc, char **argv){
@@ -107,6 +110,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	   cilj_x = pos1[0];
 	   cilj_z = pos1[2];
            flag = 1;
+	   linija = true;
 	   glutPostRedisplay();
            break;
         case 'd':
@@ -115,6 +119,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	   cilj_x = pos2[0];
 	   cilj_z = pos2[2];
            flag = 2;
+	   linija = true;
 	   glutPostRedisplay();
            break;
 	case 'k':
@@ -124,6 +129,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	   break;
 	case 's':
         case 'S':
+	   linija = false;
            if (!animation_ongoing) {
                 animation_ongoing = 1;
                 glutTimerFunc(timer_interval, on_timer, TIMER_ID);
@@ -152,26 +158,59 @@ void on_special(int key, int x, int y) {
 void on_timer(int id) {
     if (id == TIMER_ID) {
          
-        if (animation_parameter >= 20) {
+        if (animation_parameter1 >= 20 || animation_parameter2 >= 20 || animation_parameter3 >= 20) {
             animation_ongoing = 0;
-	    animation_parameter = 0;
+	    animation_parameter1 = 0;
+            animation_parameter2 = 0;
+	    animation_parameter3 = 0;
             return;
         }
-        pos3[0] = putanja[animation_parameter][0];
-        pos3[2] = putanja[animation_parameter][1];
-        animation_parameter += 1;
+        pos3[0] = putanja[animation_parameter3][0];
+        pos3[2] = putanja[animation_parameter3][1];
+        animation_parameter3 += 1;
         timer_interval++;
         
+
+    for(int i=0; i<3; i++) {
+       if(i==1 && BottomBorder(pos2)) {
+	  animation_parameter2 = 0;
+       }else if(i==1 && TopBorder(pos2)) {
+          animation_parameter2 = 0;
+       }else if(i==1 && LeftBorder(pos2)) {
+          animation_parameter2 = 0;
+       }else if(i==1 && RightBorder(pos2)) {
+          animation_parameter2 = 0;
+       }
+       if(i==2 && BottomBorder(pos3)) {
+	  animation_parameter3 = 0;
+       }else if(i==2 && TopBorder(pos3)) {
+          animation_parameter3 = 0;
+       }else if(i==2 && LeftBorder(pos3)) {
+          animation_parameter3 = 0;
+       }else if(i==2 && RightBorder(pos3)) {
+          animation_parameter3 = 0;
+       }
+       if(i==0 && BottomBorder(pos1)) {
+	  animation_parameter1 = 0;
+       }else if(i==0 && TopBorder(pos1)) {
+          animation_parameter1 = 0;
+       }else if(i==0 && LeftBorder(pos1)) {
+          animation_parameter1 = 0;
+       }else if(i==0 && RightBorder(pos1)) {
+          animation_parameter1 = 0;
+       }
     }
 
-    if(flag == 1 && isBallHit(pos1,pos3)) 
-       animation_parameter = 20;
+    if(flag == 1 && isBallHit(pos1,pos3)) {
+       animation_parameter1 = 0;
+       animation_parameter3 = 0;
+    }
     
-    if(flag == 2 && isBallHit(pos2,pos3)) 
-       animation_parameter = 20;
-
-    if(isBallHit(pos2,pos3))
-       animation_parameter = 20;
+    if(flag == 2 && isBallHit(pos2,pos3)) {
+       animation_parameter2 = 0;
+       animation_parameter3 = 0;
+    }
+   }
 
     glutPostRedisplay();
 
@@ -297,7 +336,8 @@ void on_display() {
     draw_base();
     cunjevi();
     draw_balls();
-    drawLine();
+    if(linija)
+      drawLine();
     
     glutSwapBuffers();
 }

@@ -5,8 +5,11 @@
 #include <stdlib.h>
 #include <stdbool.h> 
 #include "sto.h"
+#include "loptice.h"
 
 GLdouble hight = 0.21;
+float left = -1.75, right = 1.75;
+float top = -2.625, bottom = 2.625;
 
 
 void draw_base(){
@@ -88,5 +91,33 @@ void draw_legs(){
       glColor3f(0.5, 0.25, 0.2);
       gluCylinder(quad, hight, hight, 1.5, 10, 10);
     glPopMatrix();
+}
+
+bool LeftBorder(float niz[3]){
+	if ( niz[0] < (left + 2*radius) ) 
+		return true;
+	else 
+		return false;
+}
+
+bool RightBorder(float niz[3]){
+	if (niz[0] > (right - 2*radius))
+		return true;
+	else
+		return false;
+}
+
+bool TopBorder(float niz[3]){
+	if ( niz[2] < (top + 2*radius) )
+		return true;
+	else 
+		return false;
+}
+
+bool BottomBorder(float niz[3]){
+	if ( niz[2] > (bottom - 2*radius) )
+		return true;
+	else 
+		return false;	
 }
 
