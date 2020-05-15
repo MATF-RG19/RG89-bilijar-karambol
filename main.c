@@ -19,6 +19,7 @@ void on_timer(int id);
 
 void drawLine();
 void napraviPutanju(float x1, float y1, float x2, float y2);
+void napraviPutanju1(bool zid, int znak);
 void napraviPutanju2(bool zid, int znak);
 void napraviPutanju3(bool zid, int znak);
 float nadjiK(float x1, float y1, float x2, float y2);
@@ -228,12 +229,16 @@ void on_timer(int id) {
           animation_parameter3 = 0;
        }
        if(i==0 && BottomBorder(pos1)) {
+          napraviPutanju1(true,1);
 	  animation_parameter1 = 0;
        }else if(i==0 && TopBorder(pos1)) {
+	  napraviPutanju1(true,1);
           animation_parameter1 = 0;
        }else if(i==0 && LeftBorder(pos1)) {
+	  napraviPutanju1(true,-1);
           animation_parameter1 = 0;
        }else if(i==0 && RightBorder(pos1)) {
+	  napraviPutanju1(true,-1);
           animation_parameter1 = 0;
        }
     }
@@ -246,9 +251,12 @@ void on_timer(int id) {
        napraviPutanju3(false,1);
     }
     
-    if(flag == 2 && isBallHit(pos2,pos3)) {
-       animation_parameter2 = 0;
+    if(flag == 1 && isBallHit(pos1,pos3)) {
+       animation_parameter1 = 0;
        animation_parameter3 = 0;
+       udarena = 1;
+       napraviPutanju1(false,1);
+       napraviPutanju3(false,1);
     }
    }
 
@@ -282,6 +290,211 @@ float nadjiY(float x,float x1,float y1,float k) {
     float y;
     y = k*x - k*x1 + y1;
     return y;
+}
+
+void napraviPutanju1(bool zid, int znak) {
+    int i=20;
+    int j=1;
+
+    if(move_x == 0) {
+
+        k1 = k;
+        if(zid) {
+          k1 = k1*(-1.0);
+	  zid = false;
+        }
+        
+	if(!minusPlus) {
+           while(i>0) {
+	    float x = pos1[0]-j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos1[0]+j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
+    }else if(move_x == 0.04f || move_x == 0.05f) {
+
+        if(k < 0)
+          k1 = k + 0.6;
+        else if(k > 0)
+          k1 = k - 0.6;
+
+        if(zid && znak == 1) {
+          k1 = k1*(-1.0);
+	  zid = false;
+        }
+
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos1[0]-j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos1[0]+j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
+    }else if(move_x == 0.01f || move_x == 0.02f || move_x == 0.03f) {
+       
+	if(k < 0)
+          k1 = k + 0.2;
+	else if(k > 0)
+          k1 = k - 0.2;
+
+        if(zid && znak == 1) {
+          k1 = k1*(-1.0);
+          zid = false;
+        }
+
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos1[0]-j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos1[0]+j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
+    }else if(move_x == 0.06f || move_x == 0.07f || move_x == 0.08f) {
+
+        if(k < 0)
+          k1 = k + 1.0;
+        else if(k > 0)
+          k1 = k - 1.0;
+        
+        if(zid && znak == 1) {
+          k1 = k1*(-1.0);
+	  zid = false;
+        }
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos1[0]-j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos1[0]+j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
+    }else if(move_x == -0.04f || move_x == -0.05f) {
+
+        k1 = 0.75;
+        if(zid && znak == 1)
+          k1 = k1*(-1.0);
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos1[0]+j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos1[0]-j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
+    }else if(move_x == -0.01f || move_x == -0.02f || move_x == -0.03f) {
+
+        if(k < 0)
+          k1 = 1.25;
+        if(k > 0)
+          k1 = -1.25;
+        if(zid && znak == 1)
+          k1 = k1*(-1.0);
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos1[0]+j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos1[0]-j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
+    }else if(move_x == -0.06f || move_x == -0.07f || move_x == -0.08f) {
+
+        if(k < 0)
+          k1 = 0.50;
+        else if(k > 0)
+          k1 = -0.5;
+
+        if(zid && znak == 1)
+          k1 = k1*(-1.0);
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos1[0]+j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos1[0]-j*0.07*znak;
+            float y = nadjiY(x,pos1[0],pos1[2],k1);
+            putanja1[20-i][0] = x;
+            putanja1[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
+    }
 }
 
 void napraviPutanju2(bool zid, int znak) {
