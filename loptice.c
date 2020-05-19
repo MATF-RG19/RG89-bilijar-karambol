@@ -7,27 +7,29 @@
 #include "loptice.h"
 #include "sto.h"
 
-GLfloat pos1[3];
+/*GLfloat pos1[3];
 GLfloat pos2[3];
-GLfloat pos3[3];
+GLfloat pos3[3];*/
+float pos[3][3];
 GLfloat radius = 0.09;
 
 void inicijalizacija() {
 
-     pos1[0] = 0;
-     pos1[1] = hight + radius - 0.06;
-     pos1[2] = -2.2;
+     pos[0][0] = 0.001;
+     pos[0][1] = hight + radius - 0.06;
+     pos[0][2] = -2.2;
 
-     pos2[0] = 0;
-     pos2[1] = hight + radius - 0.06;
-     pos2[2] = 2.2;
+     pos[1][0] = 0;
+     pos[1][1] = hight + radius - 0.06;
+     pos[1][2] = 2.2;
 
-     pos3[0] = 1.35;
-     pos3[1] = hight + radius - 0.06;
-     pos3[2] = 0;   
+     pos[2][0] = 1.35;
+     pos[2][1] = hight + radius - 0.06;
+     pos[2][2] = 0; 
+    
 }
 
-void draw_balls() {
+/*void draw_balls() {
 
     //1.
     glPushMatrix();
@@ -55,9 +57,28 @@ void draw_balls() {
 	glutSolidSphere(radius,100,100);
     glPopMatrix();
 
+}*/
+
+void draw_balls() {
+
+   for(int i=0; i<3; i++) {
+      glPushMatrix();
+        glColor3f(1, 1, 1);
+	GLfloat black[] = { 0,0,0,1.0 };
+        if(i == 2) {
+           glColor3f(0, 0, 0);
+           glMaterialfv(GL_FRONT, GL_EMISSION, black);
+        }
+        else
+           glMaterialfv(GL_FRONT, GL_EMISSION, black);
+        glTranslatef(pos[i][0], pos[i][1], pos[i][2]);
+	glutSolidSphere(radius,100,100);
+      glPopMatrix();
+   }
+
 }
 
-float razdaljinaF(float niz1[3], float niz2[3]) {
+float razdaljinaK(float niz1[3], float niz2[3]) {
 
      float result0 = (niz2[0] - niz1[0])*(niz2[0] - niz1[0]);
      float result1 = (niz2[1] - niz1[1])*(niz2[1] - niz1[1]);
@@ -69,7 +90,7 @@ float razdaljinaF(float niz1[3], float niz2[3]) {
 }
 
 bool isBallHit(float niz1[3], float niz2[3]){
-	float razdaljina = razdaljinaF(niz1, niz2);
+	float razdaljina = razdaljinaK(niz1, niz2);
 	
 	float suma = 2*radius;	
 
@@ -78,4 +99,5 @@ bool isBallHit(float niz1[3], float niz2[3]){
 	else 
 		return false;				
 }
+
 

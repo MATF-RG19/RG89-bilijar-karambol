@@ -9,6 +9,7 @@
 #include "cunjevi.h"
 
 #define TIMER_ID 0
+#define FILENAME0 "start.bmp"
 
 
 static void on_display();
@@ -19,10 +20,10 @@ void on_timer(int id);
 
 void drawLine();
 void napraviPutanju(float x1, float y1, float x2, float y2);
-void napraviPutanju1(bool zid, int znak);
-void napraviPutanju2(bool zid, int znak);
+float nadjiKPrekoTacaka(float x1, float y1, float x2, float y2);
+float nadjiKPrekoUgla(float k, float tgUgla);
+void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka);
 void napraviPutanju3(bool zid, int znak);
-float nadjiK(float x1, float y1, float x2, float y2);
 
 int camera_parameter = 0;
 int timer_interval = 40;
@@ -37,11 +38,16 @@ int animation_ongoing = 0;
 int animation_parameter1 = 0;
 int animation_parameter2 = 0;
 int animation_parameter3 = 0;
-bool linija = false;
-int udarena = 0;
-float k,k1,k2,k3;
+//bool plus = false;
 bool minusPlus = false;
+float k;
+float novo_k;
+int udarena = 0;
 float pomocna_x, pomocna_y;
+bool linija = true;
+float k2,k3;
+static GLuint names[1];
+int start = 1;
 
 
 int main(int argc, char **argv){
@@ -79,6 +85,7 @@ int main(int argc, char **argv){
     glEnable(GL_COLOR_MATERIAL);
 
     glClearColor(1,1,0.8,0);
+   // initialize();
     glutMainLoop();
 
     return 0;
@@ -116,8 +123,8 @@ void on_keyboard(unsigned char key, int x, int y) {
 	case 'p':
         case 'P':
 	   move_x = 0;
-	   cilj_x = pos1[0];
-	   cilj_z = pos1[2];
+	   cilj_x = pos[0][0];
+	   cilj_z = pos[0][2];
            flag = 1;
 	   linija = true;
 	   glutPostRedisplay();
@@ -125,8 +132,8 @@ void on_keyboard(unsigned char key, int x, int y) {
         case 'd':
         case 'D':
 	   move_x = 0; 
-	   cilj_x = pos2[0];
-	   cilj_z = pos2[2];
+	   cilj_x = pos[1][0];
+	   cilj_z = pos[1][2];
            flag = 2;
 	   linija = true;
 	   glutPostRedisplay();
@@ -134,7 +141,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	case 'k':
         case 'K':
            kraj_x = cilj_x+move_x;
-	   napraviPutanju(pos3[0], pos3[2], kraj_x, cilj_z);
+	   napraviPutanju(pos[2][0], pos[2][2], kraj_x, cilj_z);
 	   break;
 	case 's':
         case 'S':
@@ -143,6 +150,10 @@ void on_keyboard(unsigned char key, int x, int y) {
                 animation_ongoing = 1;
                 glutTimerFunc(timer_interval, on_timer, TIMER_ID);
             }
+            break;
+        case 'a':
+        case 'A':
+	    start = 0;
             break;
         case 27:
           exit(0);
@@ -167,98 +178,106 @@ void on_special(int key, int x, int y) {
 void on_timer(int id) {
     if (id == TIMER_ID) {
          
-        if (animation_parameter1 >= 20 || animation_parameter2 >= 20 || animation_parameter3 >= 20) {
-            animation_ongoing = 0;
+        if (animation_parameter3 >= 20 || animation_parameter2 >= 20 || animation_parameter1 >= 20) {
+            timer_interval = 40;
 	    udarena = 0;
-	    animation_parameter1 = 0;
-            animation_parameter2 = 0;
+            animation_ongoing = 0;
 	    animation_parameter3 = 0;
+	    animation_parameter2 = 0;
+	    animation_parameter1 = 0;
             return;
         }
 
         if(udarena == 1) {
 	   if(animation_parameter1 >= 20)
               animation_parameter1 = 19;
-	   pos1[0] = putanja1[animation_parameter1][0];
-           pos1[2] = putanja1[animation_parameter1][1];
+	   pos[0][0] = putanja1[animation_parameter1][0];
+           pos[0][2] = putanja1[animation_parameter1][1];
 	   animation_parameter1++;
         }
 
         if(udarena == 2) {
            if(animation_parameter2 >= 20)
               animation_parameter2 = 19;
-	   pos2[0] = putanja2[animation_parameter2][0];
-           pos2[2] = putanja2[animation_parameter2][1];
+	   pos[1][0] = putanja2[animation_parameter2][0];
+           pos[1][2] = putanja2[animation_parameter2][1];
 	   animation_parameter2++;
         }
 
-        pos3[0] = putanja3[animation_parameter3][0];
-        pos3[2] = putanja3[animation_parameter3][1];
+        pos[2][0] = putanja3[animation_parameter3][0];
+        pos[2][2] = putanja3[animation_parameter3][1];
         animation_parameter3 += 1;
 	if(animation_parameter3 >= 20)
               animation_parameter3 = 20;
-
-        timer_interval++;
         
+        timer_interval++;
 
     for(int i=0; i<3; i++) {
-       if(i==1 && BottomBorder(pos2)) {
-          napraviPutanju2(true,1);
+       if(i==1 && BottomBorder(pos[i])) {
+          napraviPutanjuBele(true,1, putanja2, 1);
 	  animation_parameter2 = 0;
-       }else if(i==1 && TopBorder(pos2)) {
-	  napraviPutanju2(true,1);
+       }else if(i==1 && TopBorder(pos[i])) {
+	  napraviPutanjuBele(true,1, putanja2, 1);
           animation_parameter2 = 0;
-       }else if(i==1 && LeftBorder(pos2)) {
-	  napraviPutanju2(true,-1);
+       }else if(i==1 && LeftBorder(pos[i])) {
+	  napraviPutanjuBele(true,-1, putanja2, 1);
           animation_parameter2 = 0;
-       }else if(i==1 && RightBorder(pos2)) {
-	  napraviPutanju2(true,-1);
+       }else if(i==1 && RightBorder(pos[i])) {
+	  napraviPutanjuBele(true,-1, putanja2, 1);
           animation_parameter2 = 0;
        }
-       if(i==2 && BottomBorder(pos3)) {
+       if(i==2 && BottomBorder(pos[i])) {
           napraviPutanju3(true,1);
 	  animation_parameter3 = 0;
-       }else if(i==2 && TopBorder(pos3)) {
+       }else if(i==2 && TopBorder(pos[i])) {
 	  napraviPutanju3(true,1);
           animation_parameter3 = 0;
-       }else if(i==2 && LeftBorder(pos3)) {
+       }else if(i==2 && LeftBorder(pos[i])) {
 	  napraviPutanju3(true,-1);
           animation_parameter3 = 0;
-       }else if(i==2 && RightBorder(pos3)) {
+       }else if(i==2 && RightBorder(pos[i])) {
 	  napraviPutanju3(true,-1);
           animation_parameter3 = 0;
        }
-       if(i==0 && BottomBorder(pos1)) {
-          napraviPutanju1(true,1);
+       if(i==0 && BottomBorder(pos[i])) {
+          napraviPutanjuBele(true,1, putanja1, 0);
 	  animation_parameter1 = 0;
-       }else if(i==0 && TopBorder(pos1)) {
-	  napraviPutanju1(true,1);
+       }else if(i==0 && TopBorder(pos[i])) {
+	  napraviPutanjuBele(true,1, putanja1, 0);
           animation_parameter1 = 0;
-       }else if(i==0 && LeftBorder(pos1)) {
-	  napraviPutanju1(true,-1);
+       }else if(i==0 && LeftBorder(pos[i])) {
+	  napraviPutanjuBele(true,-1, putanja1, 0);
           animation_parameter1 = 0;
-       }else if(i==0 && RightBorder(pos1)) {
-	  napraviPutanju1(true,-1);
+       }else if(i==0 && RightBorder(pos[i])) {
+	  napraviPutanjuBele(true,-1, putanja1, 0);
           animation_parameter1 = 0;
        }
     }
 
-    if(flag == 2 && isBallHit(pos2,pos3)) {
-       animation_parameter2 = 0;
-       animation_parameter3 = 0;
-       udarena = 2;
-       napraviPutanju2(false,1);
-       napraviPutanju3(false,1);
-    }
-    
-    if(flag == 1 && isBallHit(pos1,pos3)) {
+    if(flag == 1 && isBallHit(pos[0],pos[2])) {
        animation_parameter1 = 0;
        animation_parameter3 = 0;
        udarena = 1;
-       napraviPutanju1(false,1);
+       napraviPutanjuBele(false,1, putanja1,0);
        napraviPutanju3(false,1);
     }
-   }
+    
+    if(flag == 2 && isBallHit(pos[1],pos[2])) {
+       animation_parameter2 = 0;
+       animation_parameter3 = 0;
+       udarena = 2;
+       napraviPutanjuBele(false,1,putanja2,1);
+       napraviPutanju3(false,1);
+    }
+
+    for(int i=0; i<3; i++) {
+      for(int j=0; j<5; j++) {
+         if(udarenCunj(pos[i], cunj[j])) 
+             oboren[j] = 1;       
+      }
+    }
+
+  }
 
     glutPostRedisplay();
 
@@ -268,6 +287,7 @@ void on_timer(int id) {
     }
    
 }
+
 
 float distance(float x1, float y1, float x2, float y2) {
 
@@ -279,10 +299,16 @@ float distance(float x1, float y1, float x2, float y2) {
      return result;
 }
 
-float nadjiK(float x1, float y1, float x2, float y2) {
+float nadjiKPrekoTacaka(float x1, float y1, float x2, float y2) {
 
     float k = (y2-y1)/(x2-x1);
     return k;
+}
+
+float nadjiKPrekoUgla(float k, float tgUgla) {
+
+    float novo_k = (tgUgla+k)/(1-k*tgUgla);
+    return novo_k;
 }
 
 float nadjiY(float x,float x1,float y1,float k) {
@@ -292,212 +318,7 @@ float nadjiY(float x,float x1,float y1,float k) {
     return y;
 }
 
-void napraviPutanju1(bool zid, int znak) {
-    int i=20;
-    int j=1;
-
-    if(move_x == 0) {
-
-        k1 = k;
-        if(zid) {
-          k1 = k1*(-1.0);
-	  zid = false;
-        }
-        
-	if(!minusPlus) {
-           while(i>0) {
-	    float x = pos1[0]-j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }else if(minusPlus) {
-	  while(i>0) {
-	    float x = pos1[0]+j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }
-    }else if(move_x == 0.04f || move_x == 0.05f) {
-
-        if(k < 0)
-          k1 = k + 0.6;
-        else if(k > 0)
-          k1 = k - 0.6;
-
-        if(zid && znak == 1) {
-          k1 = k1*(-1.0);
-	  zid = false;
-        }
-
-        if(!minusPlus) {
-           while(i>0) {
-	    float x = pos1[0]-j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }else if(minusPlus) {
-	  while(i>0) {
-	    float x = pos1[0]+j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }
-    }else if(move_x == 0.01f || move_x == 0.02f || move_x == 0.03f) {
-       
-	if(k < 0)
-          k1 = k + 0.2;
-	else if(k > 0)
-          k1 = k - 0.2;
-
-        if(zid && znak == 1) {
-          k1 = k1*(-1.0);
-          zid = false;
-        }
-
-        if(!minusPlus) {
-           while(i>0) {
-	    float x = pos1[0]-j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }else if(minusPlus) {
-	  while(i>0) {
-	    float x = pos1[0]+j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }
-    }else if(move_x == 0.06f || move_x == 0.07f || move_x == 0.08f) {
-
-        if(k < 0)
-          k1 = k + 1.0;
-        else if(k > 0)
-          k1 = k - 1.0;
-        
-        if(zid && znak == 1) {
-          k1 = k1*(-1.0);
-	  zid = false;
-        }
-        if(!minusPlus) {
-           while(i>0) {
-	    float x = pos1[0]-j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }else if(minusPlus) {
-	  while(i>0) {
-	    float x = pos1[0]+j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }
-    }else if(move_x == -0.04f || move_x == -0.05f) {
-
-        k1 = 0.75;
-        if(zid && znak == 1)
-          k1 = k1*(-1.0);
-        if(!minusPlus) {
-           while(i>0) {
-	    float x = pos1[0]+j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }else if(minusPlus) {
-	  while(i>0) {
-	    float x = pos1[0]-j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }
-    }else if(move_x == -0.01f || move_x == -0.02f || move_x == -0.03f) {
-
-        if(k < 0)
-          k1 = 1.25;
-        if(k > 0)
-          k1 = -1.25;
-        if(zid && znak == 1)
-          k1 = k1*(-1.0);
-        if(!minusPlus) {
-           while(i>0) {
-	    float x = pos1[0]+j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }else if(minusPlus) {
-	  while(i>0) {
-	    float x = pos1[0]-j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }
-    }else if(move_x == -0.06f || move_x == -0.07f || move_x == -0.08f) {
-
-        if(k < 0)
-          k1 = 0.50;
-        else if(k > 0)
-          k1 = -0.5;
-
-        if(zid && znak == 1)
-          k1 = k1*(-1.0);
-        if(!minusPlus) {
-           while(i>0) {
-	    float x = pos1[0]+j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }else if(minusPlus) {
-	  while(i>0) {
-	    float x = pos1[0]-j*0.07*znak;
-            float y = nadjiY(x,pos1[0],pos1[2],k1);
-            putanja1[20-i][0] = x;
-            putanja1[20-i][1] = y;
-            i--;
-	    j++;
-          }
-        }
-    }
-}
-
-void napraviPutanju2(bool zid, int znak) {
+void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka) {
 
     int i=20;
     int j=1;
@@ -512,19 +333,19 @@ void napraviPutanju2(bool zid, int znak) {
         
 	if(!minusPlus) {
            while(i>0) {
-	    float x = pos2[0]-j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos2[0]+j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
@@ -542,19 +363,19 @@ void napraviPutanju2(bool zid, int znak) {
         }
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos2[0]-j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos2[0]+j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
@@ -573,19 +394,19 @@ void napraviPutanju2(bool zid, int znak) {
 
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos2[0]-j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos2[0]+j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
@@ -597,25 +418,25 @@ void napraviPutanju2(bool zid, int znak) {
         else if(k > 0)
           k2 = k - 1.0;
 
-        if(zid && znak == 1) {
+        if(zid) {
           k2 = k2*(-1.0);
 	  zid = false;
         }
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos2[0]-j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos2[0]+j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
@@ -627,19 +448,19 @@ void napraviPutanju2(bool zid, int znak) {
           k2 = k2*(-1.0);
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos2[0]+j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos2[0]-j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[oznaka][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
@@ -654,19 +475,19 @@ void napraviPutanju2(bool zid, int znak) {
           k2 = k2*(-1.0);
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos2[0]+j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[znak][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[znak][0],pos[znak][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos2[0]-j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[znak][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[znak][0],pos[znak][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
@@ -682,19 +503,19 @@ void napraviPutanju2(bool zid, int znak) {
           k2 = k2*(-1.0);
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos2[0]+j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[znak][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[znak][0],pos[znak][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos2[0]-j*0.07*znak;
-            float y = nadjiY(x,pos2[0],pos2[2],k2);
-            putanja2[20-i][0] = x;
-            putanja2[20-i][1] = y;
+	    float x = pos[znak][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[znak][0],pos[znak][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
             i--;
 	    j++;
           }
@@ -721,8 +542,8 @@ void napraviPutanju3(bool zid, int znak) {
           k3 = k3*(-1.0);
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos3[0]+j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -730,8 +551,8 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos3[0]-j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -744,8 +565,8 @@ void napraviPutanju3(bool zid, int znak) {
           k3 = k3*(-1.0);
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos3[0]+j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -753,8 +574,8 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos3[0]-j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -767,8 +588,8 @@ void napraviPutanju3(bool zid, int znak) {
           k3 = k3*(-1.0);
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos3[0]+j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -776,8 +597,8 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos3[0]-j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -797,8 +618,8 @@ void napraviPutanju3(bool zid, int znak) {
         }
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos3[0]-j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -806,8 +627,8 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos3[0]+j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -827,8 +648,8 @@ void napraviPutanju3(bool zid, int znak) {
         }
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos3[0]-j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -836,8 +657,8 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos3[0]+j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -858,8 +679,8 @@ void napraviPutanju3(bool zid, int znak) {
 
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos3[0]-j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -867,8 +688,8 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos3[0]+j*0.07*znak;
-            float y = nadjiY(x,pos3[0],pos3[2],k3);
+	    float x = pos[2][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
             putanja3[20-i][0] = x;
             putanja3[20-i][1] = y;
             i--;
@@ -878,16 +699,19 @@ void napraviPutanju3(bool zid, int znak) {
     }
 }
 
+
+
+
 void napraviPutanju(float x1, float y1, float x2, float y2) {
 
-    k = nadjiK(x1,y1,x2,y2);
+    k = nadjiKPrekoTacaka(x1,y1,x2,y2);
     int i=20;
     int j=1;
     float d = fabs(x1-x2);
     float pomeraj = d/i;
 
     if(distance(x1+0.1,y1,x2,y2) < distance(x1-0.1,y1,x2,y2)) {
-
+        minusPlus = true;
 	while(i>0) {
             float x = x1+j*pomeraj;
             float y = nadjiY(x,x1,y1,k);
@@ -897,7 +721,7 @@ void napraviPutanju(float x1, float y1, float x2, float y2) {
             j++;
         } 
     }else {
-
+	minusPlus = false;
         while(i>0) {
             float x = x1-j*pomeraj;
             float y = nadjiY(x,x1,y1,k);
@@ -915,11 +739,11 @@ void drawLine() {
         glLineStipple(3, 0xAAAA);
 	glEnable(GL_LINE_STIPPLE);
 	glBegin(GL_LINES);
-		glVertex3f(pos3[0], pos3[1], pos3[2]);
+		glVertex3f(pos[2][0], pos[2][1], pos[2][2]);
                 if(flag == 1)
-		  glVertex3f(pos1[0]+move_x, pos1[1], pos1[2]);
+		  glVertex3f(pos[0][0]+move_x, pos[0][1], pos[0][2]);
                 else if(flag == 2)
-                  glVertex3f(pos2[0]+move_x, pos2[1], pos2[2]);
+                  glVertex3f(pos[1][0]+move_x, pos[1][1], pos[1][2]);
 	glEnd();
         glDisable(GL_LINE_STIPPLE);
 }
@@ -941,6 +765,7 @@ void on_display() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    
     if(camera_parameter == 0) {
        gluLookAt(6, 4, 12,
                  0, 0, 0,
@@ -961,8 +786,10 @@ void on_display() {
 
     draw_axes(5);
 
-    if(parameter == 0)
+    if(parameter == 0) {
+       inicijalizacijaCunjeva();
        inicijalizacija();
+    }
     parameter++;
 
     draw_legs();
@@ -970,8 +797,10 @@ void on_display() {
     draw_base();
     cunjevi();
     draw_balls();
-    if(linija)
+    if(linija == true) 
       drawLine();
+  
+     
     
     glutSwapBuffers();
 }
