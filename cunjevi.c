@@ -57,7 +57,11 @@ float razdaljinaF(float niz1[3], float niz2[3]) {
 
 bool udarenCunj(float niz1[3], float niz2[3]){
 
-	float razdaljina = razdaljinaF(niz1, niz2);
+        float pomocni[3];
+        for(int i=0; i<3; i++)
+            pomocni[i] = niz1[i];
+        pomocni[1] -= 0.11;
+	float razdaljina = razdaljinaF(pomocni, niz2);
 	
 	float suma = radiusCone + radius;	
 

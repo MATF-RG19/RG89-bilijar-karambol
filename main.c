@@ -7,9 +7,10 @@
 #include "sto.h"
 #include "loptice.h"
 #include "cunjevi.h"
+#include "image.h"
 
 #define TIMER_ID 0
-#define FILENAME0 "start.bmp"
+#define FILENAME0 "pozadine/slika.bmp"
 
 
 static void on_display();
@@ -17,6 +18,7 @@ static void on_reshape(int width, int height);
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_special(int key, int x, int y);
 void on_timer(int id);
+void initialize(void);
 
 void drawLine();
 void napraviPutanju(float x1, float y1, float x2, float y2);
@@ -38,7 +40,6 @@ int animation_ongoing = 0;
 int animation_parameter1 = 0;
 int animation_parameter2 = 0;
 int animation_parameter3 = 0;
-//bool plus = false;
 bool minusPlus = false;
 float k;
 float novo_k;
@@ -47,6 +48,7 @@ float pomocna_x, pomocna_y;
 bool linija = true;
 float k2,k3;
 static GLuint names[1];
+int end = 0, brojac = 0;
 int start = 1;
 
 
@@ -83,9 +85,10 @@ int main(int argc, char **argv){
 
 
     glEnable(GL_COLOR_MATERIAL);
-
+    initialize();
     glClearColor(1,1,0.8,0);
-   // initialize();
+
+   
     glutMainLoop();
 
     return 0;
@@ -151,10 +154,10 @@ void on_keyboard(unsigned char key, int x, int y) {
                 glutTimerFunc(timer_interval, on_timer, TIMER_ID);
             }
             break;
-        case 'a':
+	case 'a':
         case 'A':
-	    start = 0;
-            break;
+           start = 0;
+	   break;
         case 27:
           exit(0);
           break;
@@ -272,10 +275,22 @@ void on_timer(int id) {
 
     for(int i=0; i<3; i++) {
       for(int j=0; j<5; j++) {
-         if(udarenCunj(pos[i], cunj[j])) 
-             oboren[j] = 1;       
+         if(udarenCunj(pos[i], cunj[j])) {
+             if(i != 2) 
+                oboren[j] = 1; 
+             else {
+                brojac++;
+                pos[2][0] = 1.35;
+                pos[2][1] = 0.24;
+	  	pos[2][2] = 0;
+                animation_parameter3 = 20;
+             }
+          }      
       }
     }
+
+    if(brojac == 3)
+       end = 1;
 
   }
 
@@ -288,6 +303,53 @@ void on_timer(int id) {
    
 }
 
+void initialize(void)
+{
+    /* Objekat koji predstavlja teskturu ucitanu iz fajla. */
+    Image * image;
+
+    /* Ukljucuju se teksture. */
+    glEnable(GL_TEXTURE_2D);
+
+    glTexEnvf(GL_TEXTURE_ENV,
+              GL_TEXTURE_ENV_MODE,
+              GL_REPLACE);
+
+    /*
+     * Inicijalizuje se objekat koji ce sadrzati teksture ucitane iz
+     * fajla.
+     */
+    image = image_init(0, 0);
+
+    /* Kreira se prva tekstura. */
+    image_read(image, FILENAME0);
+
+    /* Generisu se identifikatori tekstura. */
+    glGenTextures(2, names);
+
+    glBindTexture(GL_TEXTURE_2D, names[0]);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+
+    /* Iskljucujemo aktivnu teksturu */
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    /* Unistava se objekat za citanje tekstura iz fajla. */
+    image_done(image);
+
+    inicijalizacijaCunjeva();
+    inicijalizacija();
+
+}
 
 float distance(float x1, float y1, float x2, float y2) {
 
@@ -418,7 +480,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         else if(k > 0)
           k2 = k - 1.0;
 
-        if(zid) {
+        if(zid && znak == 1) {
           k2 = k2*(-1.0);
 	  zid = false;
         }
@@ -443,9 +505,14 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         }
     }else if(move_x == -0.04f || move_x == -0.05f) {
 
-        k2 = 0.75;
-        if(zid && znak == 1)
+        if(k < 0)
+          k2 = 0.75;
+        if(k > 0)
+          k2 = -0.75;
+        if(zid && znak == 1) {
           k2 = k2*(-1.0);
+          zid = false;
+        }
         if(!minusPlus) {
            while(i>0) {
 	    float x = pos[oznaka][0]+j*0.07*znak;
@@ -471,12 +538,14 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
           k2 = 1.25;
         if(k > 0)
           k2 = -1.25;
-        if(zid && znak == 1)
+        if(zid && znak == 1) {
           k2 = k2*(-1.0);
+          zid = false;
+        }
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos[znak][0]+j*0.07*znak;
-            float y = nadjiY(x,pos[znak][0],pos[znak][2],k2);
+	    float x = pos[oznaka][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
             putanjaBele[20-i][1] = y;
             i--;
@@ -484,8 +553,8 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos[znak][0]-j*0.07*znak;
-            float y = nadjiY(x,pos[znak][0],pos[znak][2],k2);
+	    float x = pos[oznaka][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
             putanjaBele[20-i][1] = y;
             i--;
@@ -499,12 +568,14 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         else if(k > 0)
           k2 = -0.5;
 
-        if(zid && znak == 1)
+        if(zid && znak == 1) {
           k2 = k2*(-1.0);
+          zid = false;
+        }
         if(!minusPlus) {
            while(i>0) {
-	    float x = pos[znak][0]+j*0.07*znak;
-            float y = nadjiY(x,pos[znak][0],pos[znak][2],k2);
+	    float x = pos[oznaka][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
             putanjaBele[20-i][1] = y;
             i--;
@@ -512,8 +583,8 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
           }
         }else if(minusPlus) {
 	  while(i>0) {
-	    float x = pos[znak][0]-j*0.07*znak;
-            float y = nadjiY(x,pos[znak][0],pos[znak][2],k2);
+	    float x = pos[oznaka][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
             putanjaBele[20-i][1] = y;
             i--;
@@ -537,7 +608,10 @@ void napraviPutanju3(bool zid, int znak) {
          }
    }else if(move_x == 0.04f || move_x == 0.05f) {
 
-        k3 = 0.75;
+        if(k < 0)
+          k3 = 0.75;
+        if(k > 0)
+          k3 = -0.75;
         if(zid && znak == 1)
           k3 = k3*(-1.0);
         if(!minusPlus) {
@@ -560,7 +634,11 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }
     }else if(move_x == 0.01f || move_x == 0.02f || move_x == 0.03f) {
-        k3 = 1.25;
+        if(k < 0)
+          k3 = 1.25;
+        if(k > 0)
+          k3 = -1.25;
+
         if(zid && znak == 1)
           k3 = k3*(-1.0);
         if(!minusPlus) {
@@ -583,7 +661,10 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }
     }else if(move_x == 0.06f || move_x == 0.07f || move_x == 0.08f) {
-        k3 = 0.50;
+        if(k < 0)
+          k3 = 0.5;
+        if(k > 0)
+          k3 = -0.5;
         if(zid && znak == 1)
           k3 = k3*(-1.0);
         if(!minusPlus) {
@@ -642,7 +723,7 @@ void napraviPutanju3(bool zid, int znak) {
         else if(k > 0)
           k3 = k - 1.0;
 
-        if(zid && znak == 1) {
+        if(zid && znak ==1) {
           k3 = k3*(-1.0);
 	  zid = false;
         }
@@ -765,7 +846,37 @@ void on_display() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    if(end != 0) {
+
+       gluLookAt(0, 0, 8,
+                  0, 0 , 0,
+                  0, 1, 0);
     
+    
+        glBindTexture(GL_TEXTURE_2D, names[0]);
+        
+        glBegin(GL_QUADS);
+        
+            glNormal3f(0, 0, 1);
+
+            glTexCoord2f(0, 0);
+            glVertex3f(-3.45, -3.45,- 3);
+
+            glTexCoord2f(1, 0);
+            glVertex3f(3.45, -3.45, -3);
+
+            glTexCoord2f(1, 1);
+            glVertex3f(3.45, 3.45, -3);
+
+            glTexCoord2f(0, 1);
+            glVertex3f(-3.45, 3.45, -3);
+        
+        glEnd();
+        
+    
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+   else {
     if(camera_parameter == 0) {
        gluLookAt(6, 4, 12,
                  0, 0, 0,
@@ -786,11 +897,6 @@ void on_display() {
 
     draw_axes(5);
 
-    if(parameter == 0) {
-       inicijalizacijaCunjeva();
-       inicijalizacija();
-    }
-    parameter++;
 
     draw_legs();
     draw_edges();
@@ -799,9 +905,8 @@ void on_display() {
     draw_balls();
     if(linija == true) 
       drawLine();
-  
+  }
      
     
     glutSwapBuffers();
 }
-
