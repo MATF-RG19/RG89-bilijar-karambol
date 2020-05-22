@@ -10,7 +10,8 @@
 #include "image.h"
 
 #define TIMER_ID 0
-#define FILENAME0 "pozadine/slika.bmp"
+#define FILENAME0 "pozadine/lose.bmp"
+#define FILENAME1 "pozadine/win.bmp"
 
 
 static void on_display();
@@ -47,9 +48,9 @@ int udarena = 0;
 float pomocna_x, pomocna_y;
 bool linija = true;
 float k2,k3;
-static GLuint names[1];
-int end = 0, brojac = 0;
-int start = 1;
+static GLuint names[2];
+int lose = 0, brojac = 0;
+int win = 0, oboreni = 0;
 
 
 int main(int argc, char **argv){
@@ -154,10 +155,6 @@ void on_keyboard(unsigned char key, int x, int y) {
                 glutTimerFunc(timer_interval, on_timer, TIMER_ID);
             }
             break;
-	case 'a':
-        case 'A':
-           start = 0;
-	   break;
         case 27:
           exit(0);
           break;
@@ -276,8 +273,10 @@ void on_timer(int id) {
     for(int i=0; i<3; i++) {
       for(int j=0; j<5; j++) {
          if(udarenCunj(pos[i], cunj[j])) {
-             if(i != 2) 
-                oboren[j] = 1; 
+             if(i != 2) {
+                oboren[j] = 1;
+                oboreni++;
+             }
              else {
                 brojac++;
                 pos[2][0] = 1.35;
@@ -290,8 +289,12 @@ void on_timer(int id) {
     }
 
     if(brojac == 3)
-       end = 1;
+       lose = 1;
 
+
+    if(oboreni == 5) 
+       win = 1;
+    
   }
 
     glutPostRedisplay();
@@ -305,47 +308,43 @@ void on_timer(int id) {
 
 void initialize(void)
 {
-    /* Objekat koji predstavlja teskturu ucitanu iz fajla. */
-    Image * image;
-
+     Image * image;
     /* Ukljucuju se teksture. */
     glEnable(GL_TEXTURE_2D);
 
-    glTexEnvf(GL_TEXTURE_ENV,
-              GL_TEXTURE_ENV_MODE,
-              GL_REPLACE);
+    glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 
-    /*
-     * Inicijalizuje se objekat koji ce sadrzati teksture ucitane iz
-     * fajla.
-     */
+    /*Inicijalizuje se objekat*/
     image = image_init(0, 0);
 
-    /* Kreira se prva tekstura. */
+    /* Kreira se tekstura. */
     image_read(image, FILENAME0);
 
     /* Generisu se identifikatori tekstura. */
     glGenTextures(2, names);
 
     glBindTexture(GL_TEXTURE_2D, names[0]);
-    glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,
-                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-                 image->width, image->height, 0,
-                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
-
-    /* Iskljucujemo aktivnu teksturu */
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,  GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,  GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,image->width, image->height, 0,GL_RGB, GL_UNSIGNED_BYTE,image->pixels);
+    
+    image_read(image, FILENAME1);
+    
+    glBindTexture(GL_TEXTURE_2D, names[1]);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,  GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,  GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,image->width, image->height, 0,GL_RGB, GL_UNSIGNED_BYTE,image->pixels);
+    
+    
+    /* Iskljucuje se tekstura */
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    /* Unistava se objekat za citanje tekstura iz fajla. */
+    /* Unistava se objekat*/
     image_done(image);
-
     inicijalizacijaCunjeva();
     inicijalizacija();
 
@@ -846,7 +845,7 @@ void on_display() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    if(end != 0) {
+    if(lose != 0) {
 
        gluLookAt(0, 0, 8,
                   0, 0 , 0,
@@ -875,36 +874,66 @@ void on_display() {
         
     
         glBindTexture(GL_TEXTURE_2D, 0);
-    }
-   else {
-    if(camera_parameter == 0) {
-       gluLookAt(6, 4, 12,
-                 0, 0, 0,
-                 0, 1, 0);
-    }else if(camera_parameter == 1) {
-       gluLookAt(0, 10, 0,
-                 0, 0, 0,
-                 1, 0, 0);
-    }else if(camera_parameter == 2){
-       gluLookAt(0, 2, 12,
-                 0, 0, 0,
-                 0, 1, 0);
-    }else {
-       gluLookAt(11.5, 3, 0,
-                 0, 0, 0,
-                 0, 1, 0);
-    }
 
-    draw_axes(5);
+    }else if(win != 0) {
+
+       gluLookAt(0, 0, 8,
+                  0, 0 , 0,
+                  0, 1, 0);
+    
+    
+        glBindTexture(GL_TEXTURE_2D, names[1]);
+        
+        glBegin(GL_QUADS);
+        
+            glNormal3f(0, 0, 1);
+
+            glTexCoord2f(0, 0);
+            glVertex3f(-3.45, -3.45,- 3);
+
+            glTexCoord2f(1, 0);
+            glVertex3f(3.45, -3.45, -3);
+
+            glTexCoord2f(1, 1);
+            glVertex3f(3.45, 3.45, -3);
+
+            glTexCoord2f(0, 1);
+            glVertex3f(-3.45, 3.45, -3);
+        
+        glEnd();
+        
+    
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+    } else {
+       if(camera_parameter == 0) {
+          gluLookAt(6, 4, 12,
+                    0, 0, 0,
+                    0, 1, 0);
+       }else if(camera_parameter == 1) {
+          gluLookAt(0, 10, 0,
+                    0, 0, 0,
+                    1, 0, 0);
+       }else if(camera_parameter == 2){
+          gluLookAt(0, 2, 12,
+                    0, 0, 0,
+                    0, 1, 0);
+       }else {
+          gluLookAt(11.5, 3, 0,
+                    0, 0, 0,
+                    0, 1, 0);
+       }
+
+       draw_axes(5);
 
 
-    draw_legs();
-    draw_edges();
-    draw_base();
-    cunjevi();
-    draw_balls();
-    if(linija == true) 
-      drawLine();
+       draw_legs();
+       draw_edges();
+       draw_base();
+       cunjevi();
+       draw_balls();
+       if(linija == true) 
+          drawLine();
   }
      
     
