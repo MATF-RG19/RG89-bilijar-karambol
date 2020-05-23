@@ -52,7 +52,6 @@ static GLuint names[2];
 int lose = 0, brojac = 0;
 int win = 0, oboreni = 0;
 
-
 int main(int argc, char **argv){
 
     glutInit(&argc, argv);
@@ -122,7 +121,7 @@ void on_keyboard(unsigned char key, int x, int y) {
         case 'v':
         case 'V':
            camera_parameter =(camera_parameter+1)%4;
-        glutPostRedisplay();
+           glutPostRedisplay();
         break;
 	case 'p':
         case 'P':
@@ -155,6 +154,22 @@ void on_keyboard(unsigned char key, int x, int y) {
                 glutTimerFunc(timer_interval, on_timer, TIMER_ID);
             }
             break;
+	case 'c':
+        case 'C':
+           pos[2][0] = 1.35;
+           pos[2][1] = 0.24;
+	   pos[2][2] = 0; 
+	   animation_parameter3 = 0;
+           glutPostRedisplay();
+	   break;
+	case 'a':
+        case 'A':
+	   oboreni = 0;
+	   brojac = 0;
+           inicijalizacija();
+	   inicijalizacijaCunjeva();
+	   glutPostRedisplay();
+	   break;
         case 27:
           exit(0);
           break;
@@ -272,7 +287,7 @@ void on_timer(int id) {
 
     for(int i=0; i<3; i++) {
       for(int j=0; j<5; j++) {
-         if(udarenCunj(pos[i], cunj[j])) {
+         if(udarenCunj(pos[i], cunj[j]) && oboren[j] != 1) {
              if(i != 2) {
                 oboren[j] = 1;
                 oboreni++;
@@ -288,9 +303,8 @@ void on_timer(int id) {
       }
     }
 
-    if(brojac == 3)
+    if(brojac == 3) 
        lose = 1;
-
 
     if(oboreni == 5) 
        win = 1;
@@ -874,6 +888,7 @@ void on_display() {
         
     
         glBindTexture(GL_TEXTURE_2D, 0);
+	lose = 0;
 
     }else if(win != 0) {
 
@@ -904,6 +919,7 @@ void on_display() {
         
     
         glBindTexture(GL_TEXTURE_2D, 0);
+	win = 0;
 
     } else {
        if(camera_parameter == 0) {
