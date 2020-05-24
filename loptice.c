@@ -94,7 +94,7 @@ bool isBallHit(float niz1[3], float niz2[3]){
 	
 	float suma = 2*radius;	
 
-	if (razdaljina < suma) 
+	if (razdaljina <= suma) 
 		return true;
 	else 
 		return false;				

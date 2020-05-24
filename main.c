@@ -12,7 +12,7 @@
 #define TIMER_ID 0
 #define FILENAME0 "pozadine/lose.bmp"
 #define FILENAME1 "pozadine/win.bmp"
-
+#define FILENAME2 "pozadine/start.bmp"
 
 static void on_display();
 static void on_reshape(int width, int height);
@@ -48,9 +48,10 @@ int udarena = 0;
 float pomocna_x, pomocna_y;
 bool linija = true;
 float k2,k3;
-static GLuint names[2];
+static GLuint names[3];
 int lose = 0, brojac = 0;
 int win = 0, oboreni = 0;
+int start = 1;
 
 int main(int argc, char **argv){
 
@@ -168,6 +169,11 @@ void on_keyboard(unsigned char key, int x, int y) {
 	   brojac = 0;
            inicijalizacija();
 	   inicijalizacijaCunjeva();
+	   glutPostRedisplay();
+	   break;
+	case 'w':
+        case 'W':
+	   start = 0;
 	   glutPostRedisplay();
 	   break;
         case 27:
@@ -335,7 +341,7 @@ void initialize(void)
     image_read(image, FILENAME0);
 
     /* Generisu se identifikatori tekstura. */
-    glGenTextures(2, names);
+    glGenTextures(3, names);
 
     glBindTexture(GL_TEXTURE_2D, names[0]);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,  GL_CLAMP);
@@ -353,6 +359,14 @@ void initialize(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,image->width, image->height, 0,GL_RGB, GL_UNSIGNED_BYTE,image->pixels);
     
+    image_read(image, FILENAME2);
+    
+    glBindTexture(GL_TEXTURE_2D, names[2]);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,  GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,  GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,image->width, image->height, 0,GL_RGB, GL_UNSIGNED_BYTE,image->pixels);
     
     /* Iskljucuje se tekstura */
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -516,6 +530,36 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 	    j++;
           }
         }
+    }else if(move_x > 0.08f && move_x < 0.18f) {
+
+        if(k < 0)
+          k2 = k + 1.2;
+        else if(k > 0)
+          k2 = k - 1.2;
+
+        if(zid && znak == 1) {
+          k2 = k2*(-1.0);
+	  zid = false;
+        }
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos[oznaka][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos[oznaka][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
     }else if(move_x == -0.04f || move_x == -0.05f) {
 
         if(k < 0)
@@ -580,6 +624,36 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
           k2 = 0.50;
         else if(k > 0)
           k2 = -0.5;
+
+        if(zid && znak == 1) {
+          k2 = k2*(-1.0);
+          zid = false;
+        }
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos[oznaka][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos[oznaka][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
+            putanjaBele[20-i][0] = x;
+            putanjaBele[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
+    }else if(move_x < -0.08f && move_x > -0.18f) {
+
+        if(k < 0)
+          k2 = 0.30;
+        else if(k > 0)
+          k2 = -0.3;
 
         if(zid && znak == 1) {
           k2 = k2*(-1.0);
@@ -699,12 +773,39 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }
+    }else if(move_x > 0.08f && move_x < 0.18f) {
+
+        if(k < 0)
+          k3 = 0.3;
+        if(k > 0)
+          k3 = -0.3;
+        if(zid && znak == 1)
+          k3 = k3*(-1.0);
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos[2][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
+            putanja3[20-i][0] = x;
+            putanja3[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos[2][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
+            putanja3[20-i][0] = x;
+            putanja3[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
     }else if(move_x == -0.04f || move_x == -0.05f) {
 
         if(k < 0)
-          k3 = k + 0.6;
+          k3 = k + 0.7;
         else if(k > 0)
-          k3 = k - 0.6;
+          k3 = k - 0.7;
 
         if(zid && znak == 1) {
           k3 = k3*(-1.0);
@@ -760,6 +861,37 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }
     }else if(move_x == -0.06f || move_x == -0.07f || move_x == -0.08f) {
+       
+	if(k < 0)
+          k3 = k + 0.4;
+	else if(k > 0)
+          k3 = k - 0.4;
+
+        if(zid && znak == 1) {
+          k3 = k3*(-1.0);
+          zid = false;
+        }
+
+        if(!minusPlus) {
+           while(i>0) {
+	    float x = pos[2][0]-j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
+            putanja3[20-i][0] = x;
+            putanja3[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }else if(minusPlus) {
+	  while(i>0) {
+	    float x = pos[2][0]+j*0.07*znak;
+            float y = nadjiY(x,pos[2][0],pos[2][2],k3);
+            putanja3[20-i][0] = x;
+            putanja3[20-i][1] = y;
+            i--;
+	    j++;
+          }
+        }
+    }else if(move_x < -0.08f && move_x > -0.18f) {
        
 	if(k < 0)
           k3 = k + 0.2;
@@ -898,6 +1030,37 @@ void on_display() {
     
     
         glBindTexture(GL_TEXTURE_2D, names[1]);
+        
+        glBegin(GL_QUADS);
+        
+            glNormal3f(0, 0, 1);
+
+            glTexCoord2f(0, 0);
+            glVertex3f(-3.45, -3.45,- 3);
+
+            glTexCoord2f(1, 0);
+            glVertex3f(3.45, -3.45, -3);
+
+            glTexCoord2f(1, 1);
+            glVertex3f(3.45, 3.45, -3);
+
+            glTexCoord2f(0, 1);
+            glVertex3f(-3.45, 3.45, -3);
+        
+        glEnd();
+        
+    
+        glBindTexture(GL_TEXTURE_2D, 0);
+	win = 0;
+
+    } else if(start == 1) {
+
+       gluLookAt(0, 0, 8,
+                  0, 0 , 0,
+                  0, 1, 0);
+    
+    
+        glBindTexture(GL_TEXTURE_2D, names[2]);
         
         glBegin(GL_QUADS);
         
