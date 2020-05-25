@@ -275,7 +275,7 @@ void on_timer(int id) {
        }
     }
 
-    if(flag == 1 && isBallHit(pos[0],pos[2])) {
+    if(isBallHit(pos[0],pos[2])) {
        animation_parameter1 = 0;
        animation_parameter3 = 0;
        udarena = 1;
@@ -283,7 +283,7 @@ void on_timer(int id) {
        napraviPutanju3(false,1);
     }
     
-    if(flag == 2 && isBallHit(pos[1],pos[2])) {
+    if(isBallHit(pos[1],pos[2])) {
        animation_parameter2 = 0;
        animation_parameter3 = 0;
        udarena = 2;
@@ -500,7 +500,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 	    j++;
           }
         }
-    }else if(move_x == 0.06f || move_x == 0.07f || move_x == 0.08f) {
+    }else if((move_x > 0.05f && move_x < 0.07f) || move_x == 0.07f || move_x == 0.08f) {
 
         if(k < 0)
           k2 = k + 1.0;
@@ -618,7 +618,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 	    j++;
           }
         }
-    }else if(move_x == -0.06f || move_x == -0.07f || move_x == -0.08f) {
+    }else if((move_x > -0.07f && move_x < -0.05) || move_x == -0.07f || move_x == -0.08f) {
 
         if(k < 0)
           k2 = 0.50;
@@ -747,7 +747,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }
-    }else if(move_x == 0.06f || move_x == 0.07f || move_x == 0.08f) {
+    }else if((move_x > 0.05f && move_x < 0.07f) || move_x == 0.07f || move_x == 0.08f) {
         if(k < 0)
           k3 = 0.5;
         if(k > 0)
@@ -860,7 +860,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }
-    }else if(move_x == -0.06f || move_x == -0.07f || move_x == -0.08f) {
+    }else if((move_x > -0.07f && move_x < -0.05) || move_x == -0.07f || move_x == -0.08f) {
        
 	if(k < 0)
           k3 = k + 0.4;
