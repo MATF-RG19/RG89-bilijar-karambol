@@ -30,28 +30,26 @@ void napraviPutanju3(bool zid, int znak);
 
 int camera_parameter = 0;
 int timer_interval = 40;
-int parameter = 0;
-int flag = 0;
-float move_x = 0;
-float cilj_x, kraj_x, cilj_z;
-float putanja1[20][2];
-float putanja2[20][2];
-float putanja3[20][2];
+int flag = 0;                    // indikator loptice koja je udarena
+float move_x = 0;                // promenljiva za odredjivanje cilja udarca loptice     
+float cilj_x, kraj_x, cilj_z;    // promenljive koje cuvaju kordinate gde ce loptica udariti
+float putanja1[20][2];           // putanja prve loptice
+float putanja2[20][2];           // putanja druge loptice
+float putanja3[20][2];           // putanja trece(crne) loptice
 int animation_ongoing = 0;
-int animation_parameter1 = 0;
-int animation_parameter2 = 0;
-int animation_parameter3 = 0;
-bool minusPlus = false;
-float k;
-float novo_k;
-int udarena = 0;
-float pomocna_x, pomocna_y;
-bool linija = true;
-float k2,k3;
-static GLuint names[3];
-int lose = 0, brojac = 0;
-int win = 0, oboreni = 0;
-int start = 1;
+int animation_parameter1 = 0;    // parametar kretanje prve loptice
+int animation_parameter2 = 0;    // parametar kretanje druge loptice
+int animation_parameter3 = 0;    // parametar kretanja trece(crne) loptice
+bool minusPlus = false;          // pomocna promenljiva za odredjivanje putanje
+float k;                         // koeficijent pravca prave
+int udarena = 0;                 // indikator loptice koja je udarena
+float pomocna_x, pomocna_y;      // pomocna promenljiva za odredjivanje putanje
+bool linija = true;              // idikator za iscrtavanje ciljne linije
+float k2,k3;                     // koeficijent pravca prave
+static GLuint names[3];          // identifikatori tekstura
+int lose = 0, brojac = 0;        // indikator za gameOver prozor
+int win = 0, oboreni = 0;        // indikator za win prozor
+int start = 1;                   // indikator za startni prozor
 
 int main(int argc, char **argv){
 
@@ -126,6 +124,7 @@ void on_keyboard(unsigned char key, int x, int y) {
         break;
 	case 'p':
         case 'P':
+	   // promene ako zelimo da udarimo prvu lopticu
 	   move_x = 0;
 	   cilj_x = pos[0][0];
 	   cilj_z = pos[0][2];
@@ -135,6 +134,7 @@ void on_keyboard(unsigned char key, int x, int y) {
            break;
         case 'd':
         case 'D':
+	   // promene ako zelimo da udarimo drugu lopticu
 	   move_x = 0; 
 	   cilj_x = pos[1][0];
 	   cilj_z = pos[1][2];
@@ -144,11 +144,13 @@ void on_keyboard(unsigned char key, int x, int y) {
            break;
 	case 'k':
         case 'K':
+	   // odredjivanje cilja udarca crne loptice
            kraj_x = cilj_x+move_x;
 	   napraviPutanju(pos[2][0], pos[2][2], kraj_x, cilj_z);
 	   break;
 	case 's':
         case 'S':
+	   // pokretanje 
 	   linija = false;
            if (!animation_ongoing) {
                 animation_ongoing = 1;
@@ -157,6 +159,7 @@ void on_keyboard(unsigned char key, int x, int y) {
             break;
 	case 'c':
         case 'C':
+	   // postavljanje crne loptice za pocetnu poziciju
            pos[2][0] = 1.35;
            pos[2][1] = 0.24;
 	   pos[2][2] = 0; 
@@ -165,6 +168,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	   break;
 	case 'a':
         case 'A':
+	   // postavljanje svih loptica na pocetnu poziciju
 	   oboreni = 0;
 	   brojac = 0;
            inicijalizacija();
@@ -173,6 +177,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	   break;
 	case 'w':
         case 'W':
+	   //promena startnog ekrana
 	   start = 0;
 	   glutPostRedisplay();
 	   break;
@@ -186,10 +191,12 @@ void on_special(int key, int x, int y) {
     switch(key) {
      
 	case GLUT_KEY_RIGHT:
+	     // pomeranje cilja udarca desno
              move_x += 0.01;
 	     glutPostRedisplay();
              break;
 	case GLUT_KEY_LEFT:
+	     // pomeranje cilja udarca levo
              move_x -= 0.01;
 	     glutPostRedisplay();
              break;
@@ -199,6 +206,7 @@ void on_special(int key, int x, int y) {
 void on_timer(int id) {
     if (id == TIMER_ID) {
          
+        // ako je zavrseno kretanje postavljamo parametre na 0
         if (animation_parameter3 >= 20 || animation_parameter2 >= 20 || animation_parameter1 >= 20) {
             timer_interval = 40;
 	    udarena = 0;
@@ -209,6 +217,7 @@ void on_timer(int id) {
             return;
         }
 
+        // kretanje prve loptice
         if(udarena == 1) {
 	   if(animation_parameter1 >= 20)
               animation_parameter1 = 19;
@@ -217,6 +226,7 @@ void on_timer(int id) {
 	   animation_parameter1++;
         }
 
+        // kretanje druge loptice
         if(udarena == 2) {
            if(animation_parameter2 >= 20)
               animation_parameter2 = 19;
@@ -225,6 +235,7 @@ void on_timer(int id) {
 	   animation_parameter2++;
         }
 
+        // kretanje crne loptice
         pos[2][0] = putanja3[animation_parameter3][0];
         pos[2][2] = putanja3[animation_parameter3][1];
         animation_parameter3 += 1;
@@ -234,6 +245,7 @@ void on_timer(int id) {
         timer_interval++;
 
     for(int i=0; i<3; i++) {
+       // provera da li je druga loptica udarila neku ivicu stola i promena putanje loptice u slucaju udarca
        if(i==1 && BottomBorder(pos[i])) {
           napraviPutanjuBele(true,1, putanja2, 1);
 	  animation_parameter2 = 0;
@@ -247,6 +259,7 @@ void on_timer(int id) {
 	  napraviPutanjuBele(true,-1, putanja2, 1);
           animation_parameter2 = 0;
        }
+       // provera da li je crna loptica udarila neku ivicu stola i promena putanje loptice u slucaju udarca
        if(i==2 && BottomBorder(pos[i])) {
           napraviPutanju3(true,1);
 	  animation_parameter3 = 0;
@@ -260,6 +273,7 @@ void on_timer(int id) {
 	  napraviPutanju3(true,-1);
           animation_parameter3 = 0;
        }
+       // provera da li je prva loptica udarila neku ivicu stola i promena putanje loptice u slucaju udarca
        if(i==0 && BottomBorder(pos[i])) {
           napraviPutanjuBele(true,1, putanja1, 0);
 	  animation_parameter1 = 0;
@@ -275,6 +289,7 @@ void on_timer(int id) {
        }
     }
 
+    // provera da li je crna loptica udarila prvu lopticu i promena putanje loptica u slucaju udarca
     if(isBallHit(pos[0],pos[2])) {
        animation_parameter1 = 0;
        animation_parameter3 = 0;
@@ -283,6 +298,7 @@ void on_timer(int id) {
        napraviPutanju3(false,1);
     }
     
+    // provera da li je crna loptica udarila drugu lopticu i promena putanje loptica u slucaju udarca
     if(isBallHit(pos[1],pos[2])) {
        animation_parameter2 = 0;
        animation_parameter3 = 0;
@@ -291,14 +307,18 @@ void on_timer(int id) {
        napraviPutanju3(false,1);
     }
 
+    // provera da li je loptica udarila cunj
     for(int i=0; i<3; i++) {
       for(int j=0; j<5; j++) {
          if(udarenCunj(pos[i], cunj[j]) && oboren[j] != 1) {
              if(i != 2) {
+		// ako je bela loptica udarila cunj, uvecavamo broj oborenih cunjeva i oznacavamo da je i-ti cunj oboren
                 oboren[j] = 1;
                 oboreni++;
              }
              else {
+		// ako je crna loptica udarila cunj, postavljamo crnu lopticu na pocetnu poziciju
+		// uvecavamo brojac
                 brojac++;
                 pos[2][0] = 1.35;
                 pos[2][1] = 0.24;
@@ -308,10 +328,14 @@ void on_timer(int id) {
           }      
       }
     }
-
+   
+    // ako je crna loptica udarila 3 puta cunj gubimo
+    // postavljamo indikator za gameOver prozor
     if(brojac == 3) 
        lose = 1;
 
+    // ako su oboreni svi cunjevi, pobedili smo
+    // postavljamo indikator za win prozor
     if(oboreni == 5) 
        win = 1;
     
@@ -378,6 +402,7 @@ void initialize(void)
 
 }
 
+// odredjivanje udaljenosti
 float distance(float x1, float y1, float x2, float y2) {
 
      float result0 = (x2 - x1)*(x2 - x1);
@@ -388,18 +413,14 @@ float distance(float x1, float y1, float x2, float y2) {
      return result;
 }
 
+// nalazimo koeficijent pravca prave 
 float nadjiKPrekoTacaka(float x1, float y1, float x2, float y2) {
 
     float k = (y2-y1)/(x2-x1);
     return k;
 }
 
-float nadjiKPrekoUgla(float k, float tgUgla) {
-
-    float novo_k = (tgUgla+k)/(1-k*tgUgla);
-    return novo_k;
-}
-
+// nalazimo y iz formule: y-y1=((y2-y1)/(x2-x1))*(x-x1)
 float nadjiY(float x,float x1,float y1,float k) {
 
     float y;
@@ -407,21 +428,26 @@ float nadjiY(float x,float x1,float y1,float k) {
     return y;
 }
 
+// funkcija za odredjivanje putanje bele loptice
 void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka) {
 
     int i=20;
     int j=1;
 
+    // putanju odredjujemo u odnosu na promenljivu move_x i u odnosu na promenljivu minusPlus
     if(move_x == 0) {
 
+        // koeficijent pravca ostaje isti
         k2 = k;
-        if(zid) {
+	// ako je loptica udarila u zid menjamo koeficijent
+        if(zid && znak == 1) {
           k2 = k2*(-1.0);
 	  zid = false;
         }
         
 	if(!minusPlus) {
            while(i>0) {
+	   // smanjujemo kordinau x u odnodu na pocetko x 
 	    float x = pos[oznaka][0]-j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
@@ -431,6 +457,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
           }
         }else if(minusPlus) {
 	  while(i>0) {
+	    // povecavamo kordinau x u odnodu na pocetko x
 	    float x = pos[oznaka][0]+j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
@@ -441,17 +468,20 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         }
     }else if(move_x == 0.04f || move_x == 0.05f) {
 
+	// menjamo koeficijent pravca 
         if(k < 0)
           k2 = k + 0.6;
         else if(k > 0)
           k2 = k - 0.6;
 
+        // ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k2 = k2*(-1.0);
 	  zid = false;
         }
         if(!minusPlus) {
            while(i>0) {
+	   // smanjujemo kordinau x u odnodu na pocetko x
 	    float x = pos[oznaka][0]-j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
@@ -461,6 +491,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
           }
         }else if(minusPlus) {
 	  while(i>0) {
+	    // povecavamo kordinau x u odnodu na pocetko x
 	    float x = pos[oznaka][0]+j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
@@ -471,11 +502,13 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         }
     }else if(move_x == 0.01f || move_x == 0.02f || move_x == 0.03f) {
        
+        // menjamo koeficijent pravca
 	if(k < 0)
           k2 = k + 0.2;
 	else if(k > 0)
           k2 = k - 0.2;
 
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k2 = k2*(-1.0);
           zid = false;
@@ -483,6 +516,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 
         if(!minusPlus) {
            while(i>0) {
+	    // smanjujemo kordinau x u odnodu na pocetko x
 	    float x = pos[oznaka][0]-j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
@@ -492,6 +526,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
           }
         }else if(minusPlus) {
 	  while(i>0) {
+	    // povecavamo kordinau x u odnodu na pocetko x
 	    float x = pos[oznaka][0]+j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
             putanjaBele[20-i][0] = x;
@@ -502,16 +537,19 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         }
     }else if((move_x > 0.05f && move_x < 0.07f) || move_x == 0.07f || move_x == 0.08f) {
 
+        // menjamo koeficijent pravca
         if(k < 0)
           k2 = k + 1.0;
         else if(k > 0)
           k2 = k - 1.0;
 
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k2 = k2*(-1.0);
 	  zid = false;
         }
         if(!minusPlus) {
+           // smanjujemo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[oznaka][0]-j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -521,6 +559,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 	    j++;
           }
         }else if(minusPlus) {
+          // povecavamo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[oznaka][0]+j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -532,16 +571,19 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         }
     }else if(move_x > 0.08f && move_x < 0.18f) {
 
+        // menjamo koeficijent pravca
         if(k < 0)
           k2 = k + 1.2;
         else if(k > 0)
           k2 = k - 1.2;
 
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k2 = k2*(-1.0);
 	  zid = false;
         }
         if(!minusPlus) {
+           // smanjujemo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[oznaka][0]-j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -551,6 +593,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 	    j++;
           }
         }else if(minusPlus) {
+          // povecavamo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[oznaka][0]+j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -562,15 +605,19 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         }
     }else if(move_x == -0.04f || move_x == -0.05f) {
 
+        // menjamo koeficijent pravca
         if(k < 0)
           k2 = 0.75;
         if(k > 0)
           k2 = -0.75;
+
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k2 = k2*(-1.0);
           zid = false;
         }
         if(!minusPlus) {
+           // povecavamo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[oznaka][0]+j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -580,6 +627,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 	    j++;
           }
         }else if(minusPlus) {
+          // smanjujemo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[oznaka][0]-j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -591,15 +639,19 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         }
     }else if(move_x == -0.01f || move_x == -0.02f || move_x == -0.03f) {
 
+	// menjamo koeficijent pravca
         if(k < 0)
           k2 = 1.25;
         if(k > 0)
           k2 = -1.25;
+
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k2 = k2*(-1.0);
           zid = false;
         }
         if(!minusPlus) {
+           // povecavamo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[oznaka][0]+j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -609,6 +661,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 	    j++;
           }
         }else if(minusPlus) {
+          // smanjujemo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[oznaka][0]-j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -620,16 +673,19 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         }
     }else if((move_x > -0.07f && move_x < -0.05) || move_x == -0.07f || move_x == -0.08f) {
 
+	// menjamo koeficijent pravca
         if(k < 0)
           k2 = 0.50;
         else if(k > 0)
           k2 = -0.5;
 
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k2 = k2*(-1.0);
           zid = false;
         }
         if(!minusPlus) {
+           // povecavamo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[oznaka][0]+j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -639,6 +695,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 	    j++;
           }
         }else if(minusPlus) {
+          // smanjujemo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[oznaka][0]-j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -650,16 +707,19 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         }
     }else if(move_x < -0.08f && move_x > -0.18f) {
 
+	// menjamo koeficijent pravca
         if(k < 0)
           k2 = 0.30;
         else if(k > 0)
           k2 = -0.3;
 
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k2 = k2*(-1.0);
           zid = false;
         }
         if(!minusPlus) {
+           // povecavamo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[oznaka][0]+j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -669,6 +729,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
 	    j++;
           }
         }else if(minusPlus) {
+          // smanjujemo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[oznaka][0]-j*0.07*znak;
             float y = nadjiY(x,pos[oznaka][0],pos[oznaka][2],k2);
@@ -681,11 +742,15 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
     }
 }
 
+//funkcija za odredjivanje putanje crne loptice
 void napraviPutanju3(bool zid, int znak) {
 
     int i=20;
     int j=1;
+
+    // putanju odredjujemo u odnosu na promenljivu move_x i u odnosu na promenljivu minusPlus
     if(move_x == 0)  {
+         // loptica ne menja poziciju
 	 pomocna_x = putanja3[19][0];
          pomocna_y = putanja3[19][1];
          while(i>0) {
@@ -695,13 +760,18 @@ void napraviPutanju3(bool zid, int znak) {
          }
    }else if(move_x == 0.04f || move_x == 0.05f) {
 
+	// menjamo koeficijent pravca
         if(k < 0)
           k3 = 0.75;
         if(k > 0)
           k3 = -0.75;
+
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1)
           k3 = k3*(-1.0);
+
         if(!minusPlus) {
+	   // povecavamo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[2][0]+j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -711,6 +781,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }else if(minusPlus) {
+          // smanjujemo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[2][0]-j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -721,14 +792,19 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }
     }else if(move_x == 0.01f || move_x == 0.02f || move_x == 0.03f) {
+
+	// menjamo koeficijent pravca
         if(k < 0)
           k3 = 1.25;
         if(k > 0)
           k3 = -1.25;
 
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1)
           k3 = k3*(-1.0);
+
         if(!minusPlus) {
+           // povecavamo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[2][0]+j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -738,6 +814,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }else if(minusPlus) {
+	  // smanjujemo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[2][0]-j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -748,13 +825,19 @@ void napraviPutanju3(bool zid, int znak) {
           }
         }
     }else if((move_x > 0.05f && move_x < 0.07f) || move_x == 0.07f || move_x == 0.08f) {
+
+	// menjamo koeficijent pravca
         if(k < 0)
           k3 = 0.5;
         if(k > 0)
           k3 = -0.5;
+
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1)
           k3 = k3*(-1.0);
+
         if(!minusPlus) {
+	   // povecavamo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[2][0]+j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -764,6 +847,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }else if(minusPlus) {
+	  // smanjujemo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[2][0]-j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -775,13 +859,18 @@ void napraviPutanju3(bool zid, int znak) {
         }
     }else if(move_x > 0.08f && move_x < 0.18f) {
 
+	// menjamo koeficijent pravca
         if(k < 0)
           k3 = 0.3;
         if(k > 0)
           k3 = -0.3;
+
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1)
           k3 = k3*(-1.0);
+
         if(!minusPlus) {
+	   // povecavamo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[2][0]+j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -791,6 +880,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }else if(minusPlus) {
+	  // smanjujemo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[2][0]-j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -802,16 +892,18 @@ void napraviPutanju3(bool zid, int znak) {
         }
     }else if(move_x == -0.04f || move_x == -0.05f) {
 
+	// menjamo koeficijent pravca
         if(k < 0)
           k3 = k + 0.7;
         else if(k > 0)
           k3 = k - 0.7;
 
-        if(zid && znak == 1) {
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
+        if(zid && znak == 1) 
           k3 = k3*(-1.0);
-	  zid = false;
-        }
+	 
         if(!minusPlus) {
+	   // smanjujemo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[2][0]-j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -821,6 +913,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }else if(minusPlus) {
+	  // povecavamo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[2][0]+j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -832,16 +925,19 @@ void napraviPutanju3(bool zid, int znak) {
         }
     }else if(move_x == -0.01f || move_x == -0.02f || move_x == -0.03f) {
 
+	// menjamo koeficijent pravca
         if(k < 0)
           k3 = k + 1.0;
         else if(k > 0)
           k3 = k - 1.0;
 
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak ==1) {
           k3 = k3*(-1.0);
 	  zid = false;
         }
         if(!minusPlus) {
+	   // smanjujemo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[2][0]-j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -851,6 +947,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }else if(minusPlus) {
+	  // povecavamo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[2][0]+j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -862,17 +959,20 @@ void napraviPutanju3(bool zid, int znak) {
         }
     }else if((move_x > -0.07f && move_x < -0.05) || move_x == -0.07f || move_x == -0.08f) {
        
+	// menjamo koeficijent pravca
 	if(k < 0)
           k3 = k + 0.4;
 	else if(k > 0)
           k3 = k - 0.4;
 
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k3 = k3*(-1.0);
           zid = false;
         }
 
         if(!minusPlus) {
+	   // smanjujemo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[2][0]-j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -882,6 +982,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }else if(minusPlus) {
+	  // povecavamo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[2][0]+j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -893,17 +994,20 @@ void napraviPutanju3(bool zid, int znak) {
         }
     }else if(move_x < -0.08f && move_x > -0.18f) {
        
+	// menjamo koeficijent pravca
 	if(k < 0)
           k3 = k + 0.2;
 	else if(k > 0)
           k3 = k - 0.2;
 
+	// ako je loptica udarila u gornju ili donju ivicu stola menjamo koeficijent
         if(zid && znak == 1) {
           k3 = k3*(-1.0);
           zid = false;
         }
 
         if(!minusPlus) {
+	   // smanjujemo kordinau x u odnodu na pocetko x
            while(i>0) {
 	    float x = pos[2][0]-j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -913,6 +1017,7 @@ void napraviPutanju3(bool zid, int znak) {
 	    j++;
           }
         }else if(minusPlus) {
+	  // povecavamo kordinau x u odnodu na pocetko x
 	  while(i>0) {
 	    float x = pos[2][0]+j*0.07*znak;
             float y = nadjiY(x,pos[2][0],pos[2][2],k3);
@@ -926,8 +1031,7 @@ void napraviPutanju3(bool zid, int znak) {
 }
 
 
-
-
+//funkcija za odredjivanje putanje crne loptice
 void napraviPutanju(float x1, float y1, float x2, float y2) {
 
     k = nadjiKPrekoTacaka(x1,y1,x2,y2);
@@ -936,7 +1040,9 @@ void napraviPutanju(float x1, float y1, float x2, float y2) {
     float d = fabs(x1-x2);
     float pomeraj = d/i;
 
+    // proveravamo kad smo blize cilju
     if(distance(x1+0.1,y1,x2,y2) < distance(x1-0.1,y1,x2,y2)) {
+	// povecavamo x
         minusPlus = true;
 	while(i>0) {
             float x = x1+j*pomeraj;
@@ -947,6 +1053,7 @@ void napraviPutanju(float x1, float y1, float x2, float y2) {
             j++;
         } 
     }else {
+	// smanjujemo x
 	minusPlus = false;
         while(i>0) {
             float x = x1-j*pomeraj;
@@ -960,6 +1067,7 @@ void napraviPutanju(float x1, float y1, float x2, float y2) {
    
 }
 
+// funkcija za iscrtavanje putanje 
 void drawLine() {
 
         glLineStipple(3, 0xAAAA);
@@ -991,8 +1099,9 @@ void on_display() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    // ekran ako smo izgubili
     if(lose != 0) {
-
+       
        gluLookAt(0, 0, 8,
                   0, 0 , 0,
                   0, 1, 0);
@@ -1022,6 +1131,7 @@ void on_display() {
         glBindTexture(GL_TEXTURE_2D, 0);
 	lose = 0;
 
+    // ekran ako smo pobedili
     }else if(win != 0) {
 
        gluLookAt(0, 0, 8,
@@ -1053,6 +1163,7 @@ void on_display() {
         glBindTexture(GL_TEXTURE_2D, 0);
 	win = 0;
 
+    // pocetni ekran
     } else if(start == 1) {
 
        gluLookAt(0, 0, 8,
@@ -1085,6 +1196,7 @@ void on_display() {
 	win = 0;
 
     } else {
+       // razlicite pozicije kamere
        if(camera_parameter == 0) {
           gluLookAt(6, 4, 12,
                     0, 0, 0,
@@ -1105,7 +1217,7 @@ void on_display() {
 
        draw_axes(5);
 
-
+       // funkcije za iscrtavanje
        draw_legs();
        draw_edges();
        draw_base();

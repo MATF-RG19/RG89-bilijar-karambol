@@ -8,10 +8,11 @@
 #include "loptice.h"
 
 GLdouble hight = 0.21;
+//ivice stola
 float left = -1.75, right = 1.75;
 float top = -2.625, bottom = 2.625;
 
-
+//funkcija za iscrtavanje osnove stola
 void draw_base(){
     glColor3f(0, 0.48, 0);
     glPushMatrix();
@@ -23,7 +24,7 @@ void draw_base(){
     glPopMatrix();
 }
 
-
+//funkcija za iscrtavanje ivice stola
 void draw_edges() {
 
     //1.
@@ -57,6 +58,7 @@ void draw_edges() {
     glPopMatrix();
 }
 
+//funkcija za iscrtavanje donjeg dela stola
 void draw_legs(){
 
     GLUquadric* quad = gluNewQuadric();
@@ -93,6 +95,7 @@ void draw_legs(){
     glPopMatrix();
 }
 
+//funkcija koja proverava da li je loptica udarila levu ivicu stola
 bool LeftBorder(float niz[3]){
 	if ( niz[0] < (left + 2*radius) ) 
 		return true;
@@ -100,6 +103,7 @@ bool LeftBorder(float niz[3]){
 		return false;
 }
 
+//funkcija koja proverava da li je loptica udarila desnu ivicu stola
 bool RightBorder(float niz[3]){
 	if (niz[0] > (right - 2*radius))
 		return true;
@@ -107,6 +111,7 @@ bool RightBorder(float niz[3]){
 		return false;
 }
 
+//funkcija koja proverava da li je loptica udarila gornju ivicu stola
 bool TopBorder(float niz[3]){
 	if ( niz[2] < (top + 2*radius) )
 		return true;
@@ -114,6 +119,7 @@ bool TopBorder(float niz[3]){
 		return false;
 }
 
+//funkcija koja proverava da li je loptica udarila donju ivicu stola
 bool BottomBorder(float niz[3]){
 	if ( niz[2] > (bottom - 2*radius) )
 		return true;

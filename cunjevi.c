@@ -8,10 +8,11 @@
 #include "loptice.h"
 #include "sto.h"
 
-float cunj[5][3];
-int oboren[5];
+float cunj[5][3]; //matrica pozicije cunjeva
+int oboren[5];   //niz indikatora da li je cunj oboren
 float radiusCone = 0.07;
 
+//odredjivanje pozicije cunjeva
 void inicijalizacijaCunjeva() {
 
     for(int i=0; i<5; i++) {
@@ -25,6 +26,7 @@ void inicijalizacijaCunjeva() {
     }
 }
 
+//iscrtavanje cunjeva
 void cunjevi() {
 
     for(int i=0; i<5; i++) {
@@ -44,6 +46,7 @@ void cunjevi() {
     }
 }
 
+//funkcija koja odredjuje razdaljina izmedju loptica i cunja
 float razdaljinaF(float niz1[3], float niz2[3]) {
 
      float result0 = (niz2[0] - niz1[0])*(niz2[0] - niz1[0]);
@@ -55,6 +58,7 @@ float razdaljinaF(float niz1[3], float niz2[3]) {
      return result;
 }
 
+//funkcija koja proverava da li je loptica udarila cunj
 bool udarenCunj(float niz1[3], float niz2[3]){
 
         float pomocni[3];

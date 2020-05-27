@@ -7,7 +7,7 @@
 #include "loptice.h"
 #include "sto.h"
 
-float pos[3][3];
+float pos[3][3]; //matrica pozicije loptica
 GLfloat radius = 0.09;
 
 void inicijalizacija() {
@@ -26,6 +26,7 @@ void inicijalizacija() {
     
 }
 
+//funkcija za iscrtavanje loptica
 void draw_balls() {
 
    for(int i=0; i<3; i++) {
@@ -45,6 +46,7 @@ void draw_balls() {
 
 }
 
+//funkcija koja izracunava razdaljinu izmedju loptica
 float razdaljinaK(float niz1[3], float niz2[3]) {
 
      float result0 = (niz2[0] - niz1[0])*(niz2[0] - niz1[0]);
@@ -56,6 +58,7 @@ float razdaljinaK(float niz1[3], float niz2[3]) {
      return result;
 }
 
+//funkcija koja proverava da li su se loptice sudarile
 bool isBallHit(float niz1[3], float niz2[3]){
 	float razdaljina = razdaljinaK(niz1, niz2);
 	
