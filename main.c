@@ -1227,6 +1227,5 @@ void on_display() {
           drawLine();
   }
      
-    
     glutSwapBuffers();
 }
