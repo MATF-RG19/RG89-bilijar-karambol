@@ -50,6 +50,7 @@ static GLuint names[3];          // identifikatori tekstura
 int lose = 0, brojac = 0;        // indikator za gameOver prozor
 int win = 0, oboreni = 0;        // indikator za win prozor
 int start = 1;                   // indikator za startni prozor
+int stoji = 1;                   // indikator da loptica stoji 
 
 int main(int argc, char **argv){
 
@@ -125,22 +126,26 @@ void on_keyboard(unsigned char key, int x, int y) {
 	case 'p':
         case 'P':
 	   // promene ako zelimo da udarimo prvu lopticu
-	   move_x = 0;
-	   cilj_x = pos[0][0];
-	   cilj_z = pos[0][2];
-           flag = 1;
-	   linija = true;
-	   glutPostRedisplay();
+           if (stoji == 1) {
+	      move_x = 0;
+	      cilj_x = pos[0][0];
+	      cilj_z = pos[0][2];
+              flag = 1;
+	      linija = true;
+	      glutPostRedisplay();
+           }
            break;
         case 'd':
         case 'D':
 	   // promene ako zelimo da udarimo drugu lopticu
-	   move_x = 0; 
-	   cilj_x = pos[1][0];
-	   cilj_z = pos[1][2];
-           flag = 2;
-	   linija = true;
-	   glutPostRedisplay();
+	   if (stoji == 1) {
+	      move_x = 0; 
+	      cilj_x = pos[1][0];
+	      cilj_z = pos[1][2];
+              flag = 2;
+	      linija = true;
+	      glutPostRedisplay();
+           }
            break;
 	case 'k':
         case 'K':
@@ -151,6 +156,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	case 's':
         case 'S':
 	   // pokretanje 
+           stoji = 0;
 	   linija = false;
            if (!animation_ongoing) {
                 animation_ongoing = 1;
@@ -208,6 +214,7 @@ void on_timer(int id) {
          
         // ako je zavrseno kretanje postavljamo parametre na 0
         if (animation_parameter3 >= 20 || animation_parameter2 >= 20 || animation_parameter1 >= 20) {
+	    stoji = 1;
             timer_interval = 40;
 	    udarena = 0;
             animation_ongoing = 0;
@@ -440,7 +447,7 @@ void napraviPutanjuBele(bool zid, int znak, float putanjaBele[20][2], int oznaka
         // koeficijent pravca ostaje isti
         k2 = k;
 	// ako je loptica udarila u zid menjamo koeficijent
-        if(zid && znak == 1) {
+        if(zid) {
           k2 = k2*(-1.0);
 	  zid = false;
         }
